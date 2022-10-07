@@ -12,11 +12,6 @@ g_level = pd.read_csv("analysis_group_level.csv")
 participants_info = pd.read_csv("ParticipantsInfo.csv").rename(
     columns={"Unnamed: 4": "Comments"})
 
-
-help_str = """How do you want to measure the relative amplitude of paired pulses with respect
-to single test pulses? Standard way is MeanRA. The lower your dropdown choice, the more robust
-the measure."""
-
 ##### LOGIC ########
 
 
@@ -37,7 +32,7 @@ def plot_subject_data(s):
                              name=str(s) + " " + "SWD adjusted", visible='legendonly'))
 
     fig.add_hline(y=1, line_dash="dot")
-    fig.update_layout(title="Subject's " + str(s) + "Relative Amplitudes",
+    fig.update_layout(title="Subject " + str(s) + " Relative Amplitudes",
                       xaxis_title="ISI", yaxis_title="Relative amplitude")
     fig.update_layout(margin=dict(l=2, r=2, t=80, b=80))
 
@@ -126,13 +121,17 @@ def plot_data(adj):
 
 
 with st.sidebar:
-    st.write("Source code at ...")
+    st.header("ICF visualization dashboard")
+    st.write(
+        """Visualize general statistics, inspect a particular subject's data
+        or compare intra-cortical facilitation among groups.\n
+        """)
 
-st.title("Data visualization dashboard")
-st.write("Welcome to our data's front-end little world.")
+st.write("**Our data's front-end little world.**")
 
 
 # ------ Participants info -----------
+st.markdown("---")
 
 first_expander = st.expander(label="Participants information", expanded=False)
 with first_expander:
@@ -141,52 +140,59 @@ with first_expander:
 
 # ------ General -----------
 
-st.header("General statistics")
+st.markdown("---")
 
-col1, col2 = st.columns(2)
+st.write("**General statistics**")
 
-cdf_ptop = px.ecdf(data, x="EMGPeakToPeak",
-                   color="ISI", width=600, title="CDF: EMG peak to peak")
-cdf_ra = px.ecdf(data, x="RA",
-                 color="ISI", width=600, title="CDF: Relative Amplitude")
-cdf_ptop.update_layout(margin=dict(l=2, r=2, t=30, b=0))
-cdf_ra.update_layout(margin=dict(l=2, r=2, t=30, b=0))
+general_stats_expander = st.expander("General statistics", expanded=False)
 
-col1.plotly_chart(cdf_ptop)
-col2.plotly_chart(cdf_ra)
+with general_stats_expander:
 
+    col1, col2 = st.columns(2)
 
-cdf_ptop_facetted = px.ecdf(data, x="EMGPeakToPeak",
-                            color="ISI", width=700, facet_row="Label",
-                            title="CDF: EMG peak to peak by group")
-cdf_ra_facetted = px.ecdf(data, x="RA",
-                          color="ISI", width=700, facet_row="Label",
-                          title="CDF: Relative Amplitude by group")
+    cdf_ptop = px.ecdf(data, x="EMGPeakToPeak",
+                       color="ISI", height=300, width=600, title="CDF: EMG peak to peak")
+    cdf_ra = px.ecdf(data, x="RA",
+                     color="ISI", width=600, height=300, title="CDF: Relative Amplitude")
+    cdf_ptop.update_layout(margin=dict(l=2, r=2, t=30, b=0))
+    cdf_ra.update_layout(margin=dict(l=2, r=2, t=30, b=0))
 
-cdf_ptop_facetted.update_layout(margin=dict(l=2, r=2, t=30, b=0))
-cdf_ra_facetted.update_layout(margin=dict(l=2, r=2, t=30, b=0))
-col1.plotly_chart(cdf_ptop_facetted)
-col2.plotly_chart(cdf_ra_facetted)
+    col1.plotly_chart(cdf_ptop)
+    col2.plotly_chart(cdf_ra)
 
-t2 = px.parallel_coordinates(data, color="Subject",
-                             dimensions=['ISI',
-                                         'EMGPeakToPeak', 'RA'],
-                             color_continuous_scale=px.colors.diverging.Tealrose,
-                             width=1200,
-                             title="Parallel Coordinates: ISI to EMG to Relative Amplitude")
+    cdf_ptop_facetted = px.ecdf(data, x="EMGPeakToPeak",
+                                color="ISI", width=700, facet_row="Label",
+                                title="CDF: EMG peak to peak by group")
+    cdf_ra_facetted = px.ecdf(data, x="RA",
+                              color="ISI", width=700, facet_row="Label",
+                              title="CDF: Relative Amplitude by group")
 
-st.plotly_chart(t2)
+    cdf_ptop_facetted.update_layout(margin=dict(l=2, r=2, t=30, b=0))
+    cdf_ra_facetted.update_layout(margin=dict(l=2, r=2, t=30, b=0))
+    col1.plotly_chart(cdf_ptop_facetted)
+    col2.plotly_chart(cdf_ra_facetted)
 
-dens_heat_a = px.density_heatmap(
-    data, x="EMGPeakToPeak", title="Density heatmap: EMG peak to peak")
-dens_heat_b = px.density_heatmap(data, x="EMGPeakToPeak", facet_row="Label",
-                                 title="Density heatmap: EMG peak to peak by group")
-col1.plotly_chart(dens_heat_a)
-col2.plotly_chart(dens_heat_b)
+    t2 = px.parallel_coordinates(data, color="Subject",
+                                 dimensions=['ISI',
+                                             'EMGPeakToPeak', 'RA'],
+                                 color_continuous_scale=px.colors.diverging.Tealrose,
+                                 width=1200,
+                                 title="Parallel Coordinates: ISI to EMG to Relative Amplitude")
+
+    st.plotly_chart(t2)
+
+    dens_heat_a = px.density_heatmap(
+        data, x="EMGPeakToPeak", title="Density heatmap: EMG peak to peak")
+    dens_heat_b = px.density_heatmap(data, x="EMGPeakToPeak", facet_row="Label",
+                                     title="Density heatmap: EMG peak to peak by group")
+    col1.plotly_chart(dens_heat_a)
+    col2.plotly_chart(dens_heat_b)
 
 # ------ Subject data -----------
 
-st.header("Curious about a particular subject...?")
+st.markdown("---")
+
+st.write("Curious about a particular subject? Use the **subject query**.")
 
 s_query = st.text_input("Subject query",
                         help="Write a subject number to get that subject's data")
@@ -207,26 +213,36 @@ if s_query != "":
 
 # ------ Subjects data -----------
 
-st.header("Curious about all of them...?")
+st.markdown("---")
 
-second_expander = st.expander(label="Plot controls", expanded=True)
+st.write("**All subjects**")
 
-with second_expander:
+second_expander = st.expander(label="View", expanded=False)
+
+with st.sidebar:
+    st.write("**Plot controls: All subjects**")
     checkbox_bl = st.checkbox("Baseline", True)
     checkbox_swd = st.checkbox("Slow-wave disruption", True)
     checkbox_adj = st.checkbox("Adjusted measures?", False)
     only_hc = st.checkbox("Hide MDD subjects", False)
     only_mdd = st.checkbox("Hide healthy control subjects", False)
 
-fig3 = plot_all_subject_data()
-st.plotly_chart(fig3)
+with second_expander:
+    fig3 = plot_all_subject_data()
+    st.plotly_chart(fig3)
 
 # ------ Group data -----------
 
+st.markdown("---")
+st.write("Group data")
 
-st.header("Measures of ICF relative amplitude")
+third_expander = st.expander("View", expanded=True)
+with st.sidebar:
+    st.write("**Plot controls: Group data**")
+    coefficient = st.checkbox("Adjusted measures of relative amplitude?")
+    st.write(
+        """[*Source code*](https://github.com/slopezpereyra/icf-visualization-app)""")
 
-coefficient = st.checkbox("Adjusted measures of relative amplitude?")
 
-
-st.plotly_chart(plot_data(coefficient))
+with third_expander:
+    st.plotly_chart(plot_data(coefficient))
